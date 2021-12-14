@@ -95,11 +95,13 @@ if [ -z "$APP_ID" ]
 		az ad app create --display-name $SERVICE_PRINCIPLE_NAME --output none
 		APP_ID=$(az ad app list --query "[?displayName=='$SERVICE_PRINCIPLE_NAME']".appId --output tsv)
 		az ad sp create --id $APP_ID --output none
-		az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
 	else
 	   	echo "Service Principle exists reseting permissions & password"
-		az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
+
 fi
+az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
+az role assignment create --assignee $APP_ID --role "Resource Policy Contributor" --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
+
 JSON_OUTPUT=$(az ad app credential reset --id $APP_ID)
 #echo $JSON_OUTPUT
 SEARCH_STRING='\"password\": \"'
