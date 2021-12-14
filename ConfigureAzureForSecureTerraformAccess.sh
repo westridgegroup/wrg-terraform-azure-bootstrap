@@ -43,7 +43,6 @@ set -e
 
 SKIP=TRUE
 
-SERVICE_PRINCIPLE_NAME='terraform'
 RESOURCE_GROUP_NAME='terraform-mgmt-rg'
 LOCATION='eastus2'
 STORAGE_ACCOUNT_SKU='Standard_LRS'
@@ -84,6 +83,8 @@ function service_principle() {
 #####################
 #Service Principle	#
 #####################
+SERVICE_PRINCIPLE_NAME="terraform-$CURRENT_SUBSCRIPTION_ID"
+
 echo "Checking for an active Service Principle: $SERVICE_PRINCIPLE_NAME..." 
 
 APP_ID=$(az ad app list --query "[?displayName=='$SERVICE_PRINCIPLE_NAME']".appId --output tsv)
@@ -97,6 +98,7 @@ if [ -z "$APP_ID" ]
 		az ad sp create --id $APP_ID --output none
 	else
 	   	echo "Service Principle exists reseting permissions & password"
+		APP_ID=$(az ad app list --query "[?displayName=='$SERVICE_PRINCIPLE_NAME']".appId --output tsv)
 
 fi
 az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
