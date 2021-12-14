@@ -20,7 +20,6 @@
 #Exit on error
 set -e
 
-SERVICE_PRINCIPLE_NAME='terraform'
 RESOURCE_GROUP_NAME='terraform-mgmt-rg'
 
 KEY_VAULT_NAME=$(az keyvault list --resource-group terraform-mgmt-rg --query "[].name" --output tsv)

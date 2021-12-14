@@ -17,6 +17,8 @@
 #        - ARM_CLIENT_SECRET
 #        - ARM_TENANT_ID
 #        - ARM_ACCESS_KEY
+#	 - If boostrap resources already exist, keys & secrets will be refreshed
+#
 #EXAMPLE
 #    az account login
 #    ./scripts/ConfigureAzureForSecureTerraformAccess.sh
@@ -25,6 +27,10 @@
 #    Assumptions:
 #    - az cli is installed
 #    - You are already logged into Azure before running this script (eg.az account login)
+#	 - You are in the correct subscription and tenant
+#	 - Your account can create app registrations (Everyone[AAD default], Application Administrator, Cloud Application Administrator, or Global Admin)
+#	 - Can set permissions on the subscription that you are logged into (User Access Admin, Owner, or Global Admin)
+#	 - Can create objects in the subscription that you are logged into (Contributor or Owner)
 #
 #    Author:  sfibich
 #    GitHub:  https://github.com/sfibich
@@ -34,6 +40,8 @@
 
 #Exit on error
 set -e
+
+SKIP=TRUE
 
 SERVICE_PRINCIPLE_NAME='terraform'
 RESOURCE_GROUP_NAME='terraform-mgmt-rg'
@@ -50,6 +58,8 @@ RANDOM_PREFIX=${LETTERS[RANDOM % 26]}$(date +%s | rev | cut -c1-10)$RANDOM_NUMBE
 KEY_VAULT_NAME=${LETTERS[RANDOM % 26]}$(date +%s | rev | cut -c1-6)$RANDOM_NUMBER"-terraform-kv"
 STORAGE_ACCOUNT_NAME=$RANDOM_PREFIX"terraform"
 
+
+function check_login() {
 #####################
 #Check Azure login	#
 #####################
@@ -67,7 +77,10 @@ if [ -z "$CURRENT_SUBSCRIPTION_ID" ]
 fi
 
 ADMIN_USER=$(az ad signed-in-user show --query "userPrincipalName" --output tsv)
+}
 
+
+function service_principle() {
 #####################
 #Service Principle	#
 #####################
@@ -84,7 +97,8 @@ if [ -z "$APP_ID" ]
 		az ad sp create --id $APP_ID --output none
 		az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
 	else
-	   	echo "Service Principle exists so renew password (as cannot retrieve current one-off password)"
+	   	echo "Service Principle exists reseting permissions & password"
+		az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
 fi
 JSON_OUTPUT=$(az ad app credential reset --id $APP_ID)
 #echo $JSON_OUTPUT
@@ -98,29 +112,46 @@ LENGTH=$(( ${#FIRST_CUT} - ${#SECOND_CUT} - ${#SEARCH_STRING_2} ));
 #echo $LENGTH
 PASSWORD=$(echo $FIRST_CUT | cut -c1-$LENGTH)
 #echo $PASSWORD
+}
 
+
+function resource_group() {
 #####################
 #New Resource Group	#
 #####################
 
 echo "Creating Terraform Management Resource Group: $RESOURCE_GROUP_NAME"
 az group create --name $RESOURCE_GROUP_NAME --location $LOCATION --output none
+}
 
+function storage_account() {
 #####################
 #New Storage Account#
 #####################
 
 echo "Creating Terraform backend Storage Account: $STORAGE_ACCOUNT_NAME"
-az storage account create --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME --sku $STORAGE_ACCOUNT_SKU --output none
+EXISTING_STORAGE_ACCOUNT_NAME=$(az storage account list --query "[?resourceGroup=='$RESOURCE_GROUP_NAME' && contains(@.name, 'terraform')]".name --output tsv)
+if [ -z "$EXISTING_KEY_VAULT_NAME" ]
+	then
+		az storage account create --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME --sku $STORAGE_ACCOUNT_SKU --output none
+
+		#######################
+		#New Storage Container#
+		#######################
+
+		AZURE_STORAGE_ACCOUNT=$STORAGE_ACCOUNT_NAME
+		echo "Creating Terraform State Storage Container: $STORAGE_CONTAINER_NAME"
+		az storage container create --name $STORAGE_CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME --auth-mode login --output none
+
+	else
+		echo "Storage Account already exists, using: $EXISTING_STORAGE_ACCOUNT_NAME"
+		STORAGE_ACCOUNT_NAME=$(echo $EXISTING_STORAGE_ACCOUNT_NAME)
+
+fi
 
 #######################
-#New Storage Container#
+#Reset Secondary Key  #
 #######################
-
-AZURE_STORAGE_ACCOUNT=$STORAGE_ACCOUNT_NAME
-echo "Creating Terraform State Storage Container: $STORAGE_CONTAINER_NAME"
-az storage container create --name $STORAGE_CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME --auth-mode login --output none
-
 JSON_OUTPUT=$(az storage account keys renew --account-name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME --key secondary)
 #echo $JSON_OUTPUT
 SEARCH_STRING='"keyName": "key2",'
@@ -137,13 +168,22 @@ LENGTH=$(( ${#SECOND_CUT} - ${#THIRD_CUT} - ${#SEARCH_STRING_3} ))
 #echo $LENGTH
 ARM_ACCESS_KEY=$(echo $SECOND_CUT | cut -c1-$LENGTH)
 #echo $PASSWORD
+}
 
 
+function key_vault() {
 #####################
 #New KeyVault		#
 #####################
 echo "Creating Terraform KeyVault: $KEY_VAULT_NAME"
-az keyvault create --location $LOCATION --name $KEY_VAULT_NAME --resource-group $RESOURCE_GROUP_NAME --output none
+EXISTING_KEY_VAULT_NAME=$(az keyvault list --query "[?resourceGroup=='$RESOURCE_GROUP_NAME' && contains(@.name, 'terraform-kv')]".name --output tsv)
+if [ -z "$EXISTING_KEY_VAULT_NAME" ]
+	then
+		az keyvault create --location $LOCATION --name $KEY_VAULT_NAME --resource-group $RESOURCE_GROUP_NAME --output none
+	else
+		echo "Key Vault already exists, using: $EXISTING_KEY_VAULT_NAME"
+		KEY_VAULT_NAME=$(echo $EXISTING_KEY_VAULT_NAME)
+fi
 
 #############################	
 #Set KeyVault Access Policy	#
@@ -152,7 +192,9 @@ echo "Setting KeyVault Access Policy for Owner: $ADMIN_USER"
 KEY_VAULT_ID=$(az keyvault list --query "[?name=='$KEY_VAULT_NAME'].id" --output tsv)
 az role assignment create --assignee $ADMIN_USER --role Owner --scope $KEY_VAULT_ID --output none 
 
+}
 
+function set_secrets() {
 #############################
 #Create KeyVault Secrets	#
 #############################
@@ -173,3 +215,28 @@ echo "LOCATION:$LOCATION"
 echo "CONTAINER_NAME:$STORAGE_CONTAINER_NAME"
 echo "STORAGE_ACCOUNT_NAME:$STORAGE_ACCOUNT_NAME"
 echo "KEY_VAULT_NAME:$KEY_VAULT_NAME"
+
+}
+#####################
+#		MAIN		#
+#####################
+
+if [[ $SKIP == "FALSE" ]]
+	then
+		check_login
+		service_principal
+		resource_group
+		storage_account
+		key_vault
+		set_secrets
+		echo "FINISHED!"
+
+	else
+		check_login
+		resource_group
+		key_vault
+		storage_account
+		service_principle
+		set_secrets
+		echo "FINISHED SKIPPED!"
+fi
