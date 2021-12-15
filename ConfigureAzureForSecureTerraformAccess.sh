@@ -64,8 +64,8 @@ function check_login() {
 #####################
 echo "Checking for an active Azure login..."
 
-CURRENT_SUBSCRIPTION_ID=$(az account list --query [?isDefault].id --output tsv)
-TENANT_ID=$(az account list --query [?isDefault].homeTenantId --output tsv)
+CURRENT_SUBSCRIPTION_ID=$(az account list --query "[?isDefault].id" --output tsv)
+TENANT_ID=$(az account list --query "[?isDefault].homeTenantId" --output tsv)
 
 if [ -z "$CURRENT_SUBSCRIPTION_ID" ]
 	then 
@@ -83,7 +83,7 @@ function service_principle() {
 #####################
 #Service Principle	#
 #####################
-HASH_CURRENT_SUBSCRIPTION_ID=$(echo $CURRENT_SUBSCRIPTION_ID | md5sum )
+HASH_CURRENT_SUBSCRIPTION_ID=$(echo -n $CURRENT_SUBSCRIPTION_ID | md5sum | awk '{print $1}' )
 echo "HCSID: $HASH_CURRENT_SUBSCRIPTION_ID"
 
 SERVICE_PRINCIPLE_NAME="terraform-$HASH_CURRENT_SUBSCRIPTION_ID"
@@ -242,7 +242,7 @@ if [[ $SKIP == "FALSE" ]]
 		service_principle
 		resource_group
 		storage_account
-		key_vault
-		set_secrets
+		#key_vault
+		#set_secrets
 		echo "FINISHED SKIPPED!"
 fi
