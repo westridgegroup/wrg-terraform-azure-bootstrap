@@ -41,7 +41,7 @@
 #Exit on error
 set -e
 
-SKIP=TRUE
+SKIP=FALSE
 
 RESOURCE_GROUP_NAME='terraform-mgmt-rg'
 LOCATION='eastus2'
@@ -137,7 +137,7 @@ function storage_account() {
 
 echo "Creating Terraform backend Storage Account: $STORAGE_ACCOUNT_NAME"
 EXISTING_STORAGE_ACCOUNT_NAME=$(az storage account list --query "[?resourceGroup=='$RESOURCE_GROUP_NAME' && contains(@.name, 'terraform')]".name --output tsv)
-if [ -z "$EXISTING_KEY_VAULT_NAME" ]
+if [ -z "$EXISTING_STORAGE_ACCOUNT_NAME" ]
 	then
 		az storage account create --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME --sku $STORAGE_ACCOUNT_SKU --output none
 
@@ -242,7 +242,7 @@ if [[ $SKIP == "FALSE" ]]
 		service_principle
 		resource_group
 		storage_account
-		#key_vault
-		#set_secrets
+		key_vault
+		set_secrets
 		echo "FINISHED SKIPPED!"
 fi
