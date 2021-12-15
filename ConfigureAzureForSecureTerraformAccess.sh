@@ -83,17 +83,19 @@ function service_principle() {
 #####################
 #Service Principle	#
 #####################
-SERVICE_PRINCIPLE_NAME="terraform-$CURRENT_SUBSCRIPTION_ID"
+HASH_CURRENT_SUBSCRIPTION_ID=$(echo $CURRENT_SUBSCRIPTION_ID | md5sum )
+echo "HCSID: $HASH_CURRENT_SUBSCRIPTION_ID"
+
+SERVICE_PRINCIPLE_NAME="terraform-$HASH_CURRENT_SUBSCRIPTION_ID"
 
 echo "Checking for an active Service Principle: $SERVICE_PRINCIPLE_NAME..." 
 
 APP_ID=$(az ad app list --query "[?displayName=='$SERVICE_PRINCIPLE_NAME']".appId --output tsv)
-echo $APP_ID
 
 if [ -z "$APP_ID" ]
 	then 
-		echo "Creating a Terraform Service Principle: [$servicePrincipleName] ..."
-		az ad app create --display-name $SERVICE_PRINCIPLE_NAME --output none
+		echo "Creating a Terraform Service Principle: $SERVICE_PRINCIPLE_NAME ..."
+		az ad app create --display-name "$SERVICE_PRINCIPLE_NAME" --output none
 		APP_ID=$(az ad app list --query "[?displayName=='$SERVICE_PRINCIPLE_NAME']".appId --output tsv)
 		az ad sp create --id $APP_ID --output none
 	else
@@ -228,7 +230,7 @@ echo "KEY_VAULT_NAME:$KEY_VAULT_NAME"
 if [[ $SKIP == "FALSE" ]]
 	then
 		check_login
-		service_principal
+		service_principle
 		resource_group
 		storage_account
 		key_vault
@@ -237,10 +239,10 @@ if [[ $SKIP == "FALSE" ]]
 
 	else
 		check_login
-		resource_group
-		key_vault
-		storage_account
 		service_principle
+		resource_group
+		storage_account
+		key_vault
 		set_secrets
 		echo "FINISHED SKIPPED!"
 fi
