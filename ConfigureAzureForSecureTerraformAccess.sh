@@ -105,6 +105,7 @@ if [ -z "$APP_ID" ]
 fi
 az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
 az role assignment create --assignee $APP_ID --role "Resource Policy Contributor" --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
+az role assignment create --assignee $APP_ID --role "User Access Administrator" --scope /subscriptions/$CURRENT_SUBSCRIPTION_ID --output none 
 
 JSON_OUTPUT=$(az ad app credential reset --id $APP_ID)
 #echo $JSON_OUTPUT
