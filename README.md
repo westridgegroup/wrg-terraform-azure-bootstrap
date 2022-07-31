@@ -32,8 +32,8 @@ az login --use-device-code
 (per project/environment switch)
 
 ```
-source ../TerraformAzureBootstrap.sh -f dev/dev.tfvars
-terraform apply -var-file dev/dev.tfvars
+source ../TerraformAzureBootstrap.sh -f env/dev.tfvars
+terraform apply -var-file env/dev.tfvars
 ```
 
 ## Scripts
