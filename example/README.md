@@ -3,7 +3,7 @@
 This example creates three different Azure Resource Groups that are prefixed with the environment name as indicated in the respective tfvars files.  All of the tfvars files are named for an environment in a similarly named directory; the actual name or location of the files does not matter as long as they are referenced properly.  The idea is that this directoy can be used as a template for new terraform projects that use the TerraformAzureBoostrap.sh
 
 ```
-cp -R example/* ~/NEWTERRAFORMPROJECT
+cp -R wrg-terraform-azure-bootstrap/example/* NEWTERRAFORMPROJECT/
 ```
 
 ## Bootstrapping - from example directory
