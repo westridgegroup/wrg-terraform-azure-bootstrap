@@ -161,7 +161,7 @@ fi
 #######################
 #Reset Secondary Key  #
 #######################
-JSON_OUTPUT=$(az storage account keys renew --account-name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME --key secondary)
+JSON_OUTPUT=$(az storage account keys renew --account-name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME --key key2)
 #echo $JSON_OUTPUT
 SEARCH_STRING='"keyName": "key2",'
 FIRST_CUT=${JSON_OUTPUT#*$SEARCH_STRING}
