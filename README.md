@@ -21,19 +21,21 @@ The terraform-azure-boostrap project provides an enterprise-ready backend using 
 - [Scripts](#scripts)
 
 ## Initial Setup 
-(once per environment) 
+(once per subscription) 
 
 ```{r, engine='sh', count_lines}
 az login --use-device-code
 env/ConfigureAzureForSecureTerraformAccess.sh
 ```
 
-## Bootstrapping - from example directory
+## Normal Use - Bootstrapping - from example directory
 (per project/environment switch)
 
 ```
-source env/TerraformAzureBootstrap.sh -f env/dev.tfvars
-terraform apply -var-file env/dev.tfvars
+source env/TerraformAzureBootstrap.sh
+terraform_setup env/dev.tfvars
+terraform plan
+terraform apply
 ```
 
 ## Scripts

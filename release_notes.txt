@@ -1,3 +1,12 @@
+Release 2.0.0
+-- TerraformAzureBootstrap now provides functions which need to be called, the file should still be sourced.
+-- New Functions:
+-- terraform_setup
+-- terraform_plan
+-- terraform_apply
+-- terraform_destroy
+-- Tested for Terraform 1.7.3 on darwin_arm64 & az-cli 2.57.0 on darwin
+
 Release 1.1.0
 -- App Registration name is now 'terraform-' plus the md5 has of the current subscription id.  
 ---- This will create a new App Registration if re-run in a subscription where it was previously run.

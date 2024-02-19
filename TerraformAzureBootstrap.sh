@@ -14,7 +14,7 @@
 #        - ARM_TENANT_ID																									#
 #        - ARM_ACCESS_KEY																									#
 #																															#
-#VERSION 1.1.0																												#
+#VERSION 2.0.0																												#
 #																															#
 #EXAMPLE																													#
 #    source ./LoadAzureTerraformSecretsToEnvVars.sh																			#
@@ -28,15 +28,15 @@
 #    - You are already logged into Azure before running this script (eg. az account login)									#
 #																															#
 #    Author:  SFibich																										#	
-#    GitHub:  https://github.com/sfibich																					#
+#    GitHub:  https://github.com/westridgegroup																					#
 #																															#
 #    This script was modeled after Adam Rush's script LoadAzureTerraformSecretsToEnvVars.ps1 https://github.com/adamrushuk.	#
 #																															#
 #############################################################################################################################
+echo "sourcing TerraformAzureBootstrap.sh"
 YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
-SKIP=FALSE
 OPTIND=1
 while getopts :m:f:k:r:s: flag
 do
@@ -45,7 +45,6 @@ do
         k) USER_KEY_VAULT_PATTERN=${OPTARG};;
         r) USER_RESOURCE_GROUP=${OPTARG};;
         s) USER_SUBSCRIPTION=${OPTARG};;
-		m) SKIP=${OPTARG};;
 		?) SKIP=TRUE 
 			echo "help: switches -f ENV_FILE -k USER_KEY_VAULT_PATTERN -r USER_RESOURCE_GROUP -s USER_SUBSCRIPTION" ;;
     esac
@@ -212,19 +211,27 @@ function terraform_init() {
 #####################
 #		MAIN		#
 #####################
+function terraform_setup() {
+	ENV_FILE=$1
+	echo "ENV_FILE is $ENV_FILE"
+	set_core_variables
+	get_keyvault_values
+	get_backend_values
+	read_env_file
+	output_info
+	terraform_init
 
-if [[ $SKIP == "FALSE" ]]
-	then
-		set_core_variables
-		get_keyvault_values
-		get_backend_values
-		read_env_file
-		output_info
-		terraform_init
+	echo "FINISHED!"
+}
 
-		echo "FINISHED!"
+function terraform_plan() {
+	eval "terraform plan -var-file $ENV_FILE -out terraform.plan"
+}
 
-	else
-		read_env_file
-		echo ""
-fi
+function terraform_apply() {
+	eval "terraform apply terraform.plan" 
+}
+
+function terraform_destroy() {
+	eval "terraform apply -destroy -var-file $ENV_FILE" 
+}
