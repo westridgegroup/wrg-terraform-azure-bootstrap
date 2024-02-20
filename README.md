@@ -4,9 +4,7 @@
 ![terraform-azure-bootstrap](terraform-azure-boostrap.png)
 
 ## Intro 
-The terraform-azure-boostrap project provides an enterprise-ready backend using Azure resources.  Using the terraform-azure-bootstrap, move your Terraform state files to Azure Storage and use an App Registration Client Id and Client Secret for authorization to Azure.  This allows you to decouple the permissions from your account to that of the App Registration.  It also allows you to share state files across your organization with other developers or CICD pipelines.  Lastly, it allows you to release the same terraform code to different environments without overwriting state files and without modifying the terraform code or having some sort of pre-execution replacement script run.
-
-The idea is to source this file directly in your .bashrc or .zshrc so that the functions are always available.
+The terraform-azure-boostrap project provides an enterprise-ready backend using Azure resources.  Using the terraform-azure-bootstrap, moves your Terraform state files to Azure Storage and uses an App Registration Client Id and Client Secret for authorization to Azure.  This allows you to decouple the permissions from your account to that of the App Registration.  It also allows you to share state files across your organization with other developers or CICD pipelines.  Lastly, it allows you to release the same terraform code to different environments without overwriting state files and without modifying the terraform code or having some sort of pre-execution replacement script run.
 
 ## Requirements
 
@@ -37,8 +35,8 @@ env/ConfigureAzureForSecureTerraformAccess.sh
 az login --use-device-code
 source env/TerraformAzureBootstrap.sh
 terraform_setup env/dev.tfvars
-terraform plan
-terraform apply
+terraform_plan
+terraform_apply
 ```
 
 ## Scripts
