@@ -1,5 +1,7 @@
 # Local .terraform directories
 **/.terraform/*
+**/.terraform.plan
+**/.terraform.lock.hcl
 
 #Mac Junk
 **/.DS_Store
