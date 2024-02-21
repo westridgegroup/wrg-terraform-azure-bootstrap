@@ -1,4 +1,4 @@
-Release 2.0.1
+Release 2.1.0
 -- Introduction of a help function "terra_help" only works in zsh
 -- Non breaking rename of internal functions in the script to be prefixe with "terra_"
 -- Tested for Terraform 1.7.3 on darwin_arm64 & az-cli 2.57.0 on darwin

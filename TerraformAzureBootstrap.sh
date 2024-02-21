@@ -14,7 +14,7 @@
 #        - ARM_TENANT_ID																									#
 #        - ARM_ACCESS_KEY																									#
 #																															#
-#VERSION 2.0.1																												#
+#VERSION 2.1.0																												#
 #																															#
 #EXAMPLE																													#
 #    source ./LoadAzureTerraformSecretsToEnvVars.sh																			#
