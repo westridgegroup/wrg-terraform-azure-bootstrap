@@ -14,7 +14,7 @@
 #        - ARM_TENANT_ID																									#
 #        - ARM_ACCESS_KEY																									#
 #																															#
-#VERSION 2.0.0																												#
+#VERSION 2.0.1																												#
 #																															#
 #EXAMPLE																													#
 #    source ./LoadAzureTerraformSecretsToEnvVars.sh																			#
@@ -24,7 +24,7 @@
 #NOTES																														#
 #    Assumptions:																											#
 #    - Az Cli install																										#
-#	 - You are inside a bash session																						#
+#	 - You are inside a zsh/bash session																						#
 #    - You are already logged into Azure before running this script (eg. az account login)									#
 #																															#
 #    Author:  SFibich																										#	
@@ -34,6 +34,8 @@
 #																															#
 #############################################################################################################################
 echo "sourcing TerraformAzureBootstrap.sh"
+echo "terra_help for help"
+
 YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
@@ -50,8 +52,10 @@ do
     esac
 done
 
+alias faa=' (print -rlo ${(k)functions} ${(k)aliases} )'
+alias terra_help=' (faa | grep ^terra)'
 
-function read_env_file() {
+function terra_read_env_file() {
 	echo "ENV FILE: $ENV_FILE"
 	a=$(grep state_container_name $ENV_FILE)
 	b=$(echo $a | tr -d "=")
@@ -71,7 +75,7 @@ function read_env_file() {
 	echo "STATE_KEY: $STATE_KEY"
 }
 
-function set_core_variables() {
+function terra_set_core_variables() {
 
 if [ -z "$USER_KEY_VAULT_PATTERN" ]
 	then
@@ -95,7 +99,7 @@ fi
 }
 
 
-function get_keyvault_values() {
+function terra_get_keyvault_values() {
 
 #####################
 #Check Azure login	#
@@ -176,13 +180,13 @@ fi
 
 }
 
-function get_backend_values() {
+function terra_get_backend_values() {
 
 	BACKEND_STORAGE_ACCOUNT=$(az storage account list --resource-group $TERRAFORM_RESOURCE_GROUP --query "[?contains(@.name, 'terraform')==\`true\`].name" --output tsv)
 }
 
 
-function output_info() {
+function terra_output_info() {
 	echo "************************************************************************"
 	echo "                              SPN VALUES"
 	echo "************************************************************************"
@@ -200,7 +204,7 @@ function output_info() {
 	export ARM_ACCESS_KEY
 }
 
-function terraform_init() {
+function terra_init() {
 	
 	TERRAFORM_INIT="terraform init --backend-config='storage_account_name=$BACKEND_STORAGE_ACCOUNT' --backend-config='key=$STATE_KEY' --backend-config='container_name=$STATE_CONTAINER_NAME' --reconfigure"
 	echo "Running: $TERRAFORM_INIT"
@@ -214,12 +218,12 @@ function terraform_init() {
 function terraform_setup() {
 	ENV_FILE=$1
 	echo "ENV_FILE is $ENV_FILE"
-	set_core_variables
-	get_keyvault_values
-	get_backend_values
-	read_env_file
-	output_info
-	terraform_init
+	terra_set_core_variables
+	terra_get_keyvault_values
+	terra_get_backend_values
+	terra_read_env_file
+	terra_output_info
+	terra_init
 
 	echo "FINISHED!"
 }

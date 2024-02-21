@@ -1,3 +1,7 @@
+Release 2.0.1
+-- Introduction of a help function "terra_help" only works in zsh
+-- Non breaking rename of internal functions in the script to be prefixe with "terra_"
+
 Release 2.0.0
 -- TerraformAzureBootstrap now provides functions which need to be called, the file should still be sourced.
 -- New Functions:
