@@ -24,11 +24,11 @@
 #NOTES																														#
 #    Assumptions:																											#
 #    - Az Cli install																										#
-#	 - You are inside a zsh/bash session																						#
+#	 - You are inside a zsh/bash session																					#
 #    - You are already logged into Azure before running this script (eg. az account login)									#
 #																															#
 #    Author:  SFibich																										#	
-#    GitHub:  https://github.com/westridgegroup																					#
+#    GitHub:  https://github.com/westridgegroup																				#
 #																															#
 #    This script was modeled after Adam Rush's script LoadAzureTerraformSecretsToEnvVars.ps1 https://github.com/adamrushuk.	#
 #																															#

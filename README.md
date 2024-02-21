@@ -25,15 +25,15 @@ The terraform-azure-boostrap project provides an enterprise-ready backend using 
 
 ```{r, engine='sh', count_lines}
 az login --use-device-code
-env/ConfigureAzureForSecureTerraformAccess.sh
+./ConfigureAzureForSecureTerraformAccess.sh
 ```
 
-## Normal Use - Bootstrapping - from example directory
+## Normal Use - Bootstrapping
 (per project/environment switch)
 
 ```
 az login --use-device-code
-source env/TerraformAzureBootstrap.sh
+source TerraformAzureBootstrap.sh
 terraform_setup env/dev.tfvars
 terraform_plan
 terraform_apply
