@@ -19,7 +19,7 @@
 #        - ARM_ACCESS_KEY
 #	 - If boostrap resources already exist, keys & secrets will be refreshed
 #
-#VERSION 1.1.0
+#VERSION 2.2.0
 #
 #EXAMPLE
 #    az account login
@@ -134,6 +134,30 @@ echo "Creating Terraform Management Resource Group: $RESOURCE_GROUP_NAME"
 az group create --name $RESOURCE_GROUP_NAME --location $LOCATION --output none
 }
 
+function providers() {
+#####################
+#Providers#
+#####################
+echo "Checking Storage Provider"
+PROVIDER_STATUS=$(az provider list --query "[?namespace=='Microsoft.Storage'].registrationState" --output tsv)
+if [ "$PROVIDER_STATUS" = "NotRegistered" ]
+	then
+		az provider register --namespace 'Microsoft.Storage' --wait
+		echo "Storage Provider Enabled"
+	else
+		echo "Storage Provider already Enabled"
+fi
+echo "Checking KeyVault Account Provider"
+PROVIDER_STATUS=$(az provider list --query "[?namespace=='Microsoft.KeyVault'].registrationState" --output tsv)
+if [ "$PROVIDER_STATUS" = "NotRegistered" ]
+	then
+		az provider register --namespace 'Microsoft.KeyVault' --wait
+		echo "KeyVault Provider Enabled"
+	else
+		echo "KeyVault Provider already Enabled"
+fi
+}
+
 function storage_account() {
 #####################
 #New Storage Account#
@@ -236,6 +260,7 @@ if [[ $SKIP == "FALSE" ]]
 		check_login
 		service_principle
 		resource_group
+		providers
 		storage_account
 		key_vault
 		set_secrets
